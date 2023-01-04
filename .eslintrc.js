@@ -258,7 +258,7 @@ module.exports = {
     'array-bracket-spacing': [2, 'never'],
 
     'vue/html-self-closing': [
-      'never',
+      0,
       {
         html: {
           void: 'never',
@@ -269,6 +269,8 @@ module.exports = {
         math: 'always'
       }
     ],
-    'vue/max-attributes-per-line': 'off'
+    'vue/max-attributes-per-line': 'off',
+    'vue/multi-word-component-names': "off",
+    'vue/no-mutating-props': 0
   }
 }

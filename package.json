@@ -1,5 +1,5 @@
 {
-  "name": "electron-vue-print-demo",
+  "name": "print",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,27 +13,28 @@
   },
   "main": "background.js",
   "dependencies": {
-    "@vue/eslint-config-airbnb": "^4.0.1",
-    "core-js": "^2.6.5",
-    "dayjs": "^1.8.15",
-    "electron": "^3.0.0",
-    "electron-log": "^3.0.7",
-    "electron-store": "^2.0.0",
-    "electron-updater": "^4.1.2",
-    "element-ui": "^2.11.1",
-    "node-sass": "^4.12.0",
-    "sass-loader": "^7.1.0",
-    "vue": "^2.6.10"
+    "babel-eslint": "^10.1.0",
+    "core-js": "^3.8.3",
+    "electron-log": "^4.4.8",
+    "electron-store": "^8.1.0",
+    "element-ui": "^2.15.12",
+    "node-sass": "^8.0.0",
+    "rebuild": "^0.1.2",
+    "sass-loader": "^13.2.0",
+    "vue": "^2.6.14"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^3.9.0",
-    "@vue/cli-plugin-eslint": "^3.9.0",
-    "@vue/cli-service": "^3.9.0",
-    "babel-eslint": "^10.0.1",
-    "eslint": "^5.16.0",
-    "eslint-plugin-vue": "^5.0.0",
-    "vue-cli-plugin-electron-builder": "^1.3.6",
-    "vue-template-compiler": "^2.6.10"
+    "@babel/core": "^7.12.16",
+    "@babel/eslint-parser": "^7.12.16",
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-plugin-eslint": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "electron": "^13.0.0",
+    "electron-devtools-installer": "^3.1.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-vue": "^8.0.3",
+    "vue-cli-plugin-electron-builder": "~2.1.1",
+    "vue-template-compiler": "^2.6.14"
   },
   "eslintConfig": {
     "root": true,
@@ -44,18 +45,14 @@
       "plugin:vue/essential",
       "eslint:recommended"
     ],
-    "rules": {},
     "parserOptions": {
-      "parser": "babel-eslint"
-    }
-  },
-  "postcss": {
-    "plugins": {
-      "autoprefixer": {}
-    }
+      "parser": "@babel/eslint-parser"
+    },
+    "rules": {}
   },
   "browserslist": [
     "> 1%",
-    "last 2 versions"
+    "last 2 versions",
+    "not dead"
   ]
 }

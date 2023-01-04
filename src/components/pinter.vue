@@ -1,18 +1,13 @@
 <template>
   <div class="container">
-    <webview id="printWebview" ref="printWebview" :src="fullPath" nodeintegration />
-    <printDialog :dialog-visible="dialogVisible" @cancel="handlePrintDialogCancel" @select-print="printSelectAfter" />
+    <webview id="printWebview" ref="printWebview" :src="fullPath" nodeintegration webpreferences="contextIsolation=no"/>
   </div>
 </template>
 <script>
 import { ipcRenderer } from 'electron'
 import path from 'path'
-import printDialog from './PrintDialog.vue'
 export default {
   name: 'Pinter',
-  components: {
-    printDialog
-  },
   props: {
     // HtmlData: {
     //   type: String,
@@ -33,23 +28,22 @@ export default {
   mounted() {
     const webview = this.$refs.printWebview
     webview.addEventListener('ipc-message', (event) => {
+      console.log(123)
       if (event.channel === 'webview-print-do') {
         console.log(this.printDeviceName)
-        webview.print(
-          {
-            silent: true,
-            printBackground: true,
-            deviceName: this.printDeviceName
-          },
-          (data) => {
-            this.messageBox.close()
-            if (data) {
-              this.$emit('complete')
-            } else {
-              this.$emit('cancel')
-            }
-          },
-        )
+        webview.print({
+          silent: true,
+          printBackground: true,
+          deviceName: this.printDeviceName
+        }).then((data) => {
+          console.log('callback', data)
+          this.messageBox.close()
+          if (data) {
+            this.$emit('complete')
+          } else {
+            this.$emit('cancel')
+          }
+        })
       }
     })
   },
@@ -105,19 +99,14 @@ export default {
             this.dialogVisible = true
           }
         })
-
       }
     },
 
     handlePrintDialogCancel() {
-      this.$emit('cancel')
-      this.dialogVisible = false
     },
-    printSelectAfter(val) {
+    printSelectAfter() {
       this.dialogVisible = false
-      this.$electronStore.set('printForm', val.name)
-      this.printDeviceName = val.name
-      this.printRender()
+      this.printDeviceName = this.$electronStore.get('printForm')
     },
     printRender(html) {
       this.messageBox = this.$message({

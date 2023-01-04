@@ -24,28 +24,27 @@
 import { ipcRenderer } from 'electron'
 export default {
   name: '',
-  props: {
-    dialogVisible: {
-      type: Boolean,
-      default: false
-    }
-  },
+  props: ['dialogVisible'],
   data() {
     return {
       rowData: null,
-      printList: []
+      printList: [],
+      defaultPrint: ''
     }
   },
-  computed: {
-    defaultPrint() {
-      return this.$electronStore.get('printForm') || ''
-    }
-  },
+  // computed: {
+  //   defaultPrint() {
+  //     console.log('default')
+  //     console.log(this.$electronStore.get('printForm'))
+  //     return this.$electronStore.get('printForm') || ''
+  //   }
+  // },
   watch: {
-    dialogVisible: {
-      immediate: true,
-      handler: 'getPrintListHandle'
-    },
+    dialogVisible: function(newVal, oldVal) {
+      this.defaultPrint = this.$electronStore.get('printForm') || ''
+      this.getPrintListHandle(newVal)
+      this.dialogVisible = newVal
+    }
   },
   methods: {
     // 获取打印机列表
@@ -56,6 +55,7 @@ export default {
       // 改用ipc异步方式获取列表，解决打印列数量多的时候导致卡死的问题
       ipcRenderer.send('getPrinterList')
       ipcRenderer.once('getPrinterList', (event, data) => {
+        console.log(data)
         // 过滤可用打印机
         this.printList = data.filter(element => element.status === 0)
       })
@@ -63,13 +63,9 @@ export default {
     handleCurrentChange(row) {
       this.rowData = row
     },
-    // 取消
-    cancel() {
-      this.dialogVisible = false
-    },
     selectPrint() {
       if (this.rowData) {
-        this.$emit('select-print', this.rowData)
+        this.$emit('select', this.rowData)
       } else {
         this.$message({
           message: '您还没有选择打印机',

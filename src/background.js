@@ -1,58 +1,74 @@
-import * as path from 'path'
+'use strict'
+
 import { app, protocol, BrowserWindow, ipcMain } from 'electron'
-import { createProtocol, installVueDevtools } from 'vue-cli-plugin-electron-builder/lib'
 import ElectronStore from 'electron-store'
+import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
+import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
+const isDevelopment = process.env.NODE_ENV !== 'production'
 // ElectronStore 默认数据
 import electronDefaultData from './config/electron-default-data'
 // 设置菜单
 import { setMenu } from './main-process/menu'
 // 设置托盘
 import { setTray } from './main-process/tray'
-// 获取所有  ipcMain事件
-import ipcMainEvent from './main-process/event'
-const isDevelopment = process.env.NODE_ENV !== 'production'
+
 let tray = null
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
+
 // 窗口映射对象
 global.$winodws = {
   main: null
 }
 
 const winodws = global.$winodws
-
-let win
-
 let electronStore
 // Scheme must be registered before the app is ready
-protocol.registerStandardSchemes(['app'], { secure: true })
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'app', privileges: { secure: true, standard: true } }
+])
 
-function createWindow() {
+async function createWindow() {
   // Create the browser window.
-  win = new BrowserWindow({
+  const win = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-      nodeIntegration: true
+      
+      // Use pluginOptions.nodeIntegration, leave this alone
+      // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
+      nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
+      contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
+      enableRemoteModule:true,
+      webviewTag:true
     }
   })
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
-    win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
+    await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
     if (!process.env.IS_TEST) win.webContents.openDevTools()
   } else {
     createProtocol('app')
     // Load the index.html when not in development
     win.loadURL('app://./index.html')
   }
+
   // 设置托盘
   tray = setTray(win)
   // 设置菜单
   setMenu()
-  win.on('closed', () => {
-    win = null
-  })
+
+  // 初始化事件监听  ipcMain.on event
+  if(win.webContents.getPrintersAsync instanceof Function){
+    ipcMain.on('getPrinterList', async (event) => {
+      const list = await event.sender.getPrintersAsync();
+      event.sender.send('getPrinterList', list);
+    })
+  }else{
+    ipcMain.on('getPrinterList', (event) => {
+      const list = event.sender.getPrinters();
+      event.sender.send('getPrinterList', list);
+    })
+  }
 }
 
 // Quit when all windows are closed.
@@ -67,23 +83,21 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (win === null) {
-    createWindow()
-  }
+  if (BrowserWindow.getAllWindows().length === 0) createWindow()
 })
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', async() => {
-  if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools
-    try {
-      await installVueDevtools()
-    } catch (e) {
-      console.error('Vue Devtools failed to install:', e.toString())
-    }
-  }
+app.on('ready', async () => {
+  // if (isDevelopment && !process.env.IS_TEST) {
+  //   // Install Vue Devtools
+  //   try {
+  //     await installExtension(VUEJS_DEVTOOLS)
+  //   } catch (e) {
+  //     console.error('Vue Devtools failed to install:', e.toString())
+  //   }
+  // }
   // 初始化配置文件
   electronStore = new ElectronStore({
     defaults: electronDefaultData,
@@ -96,7 +110,7 @@ app.on('ready', async() => {
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
   if (process.platform === 'win32') {
-    process.on('message', data => {
+    process.on('message', (data) => {
       if (data === 'graceful-exit') {
         app.quit()
       }
@@ -108,9 +122,4 @@ if (isDevelopment) {
   }
 }
 
-// 初始化事件监听  ipcMain.on event
-Object.keys(ipcMainEvent).forEach(key => {
-  ipcMain.on(key, (event, ...args) => {
-    ipcMainEvent[key](event, winodws, ...args)
-  })
-})
+

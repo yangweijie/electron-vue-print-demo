@@ -1,8 +1,8 @@
 <template>
   <div id="app">
     <el-button type="primary" @click="showPrint">设置打印机</el-button>
-    <printDialog :dialog-visible="dialogVisible" @cancel="handlePrintDialogCancel" />
-    <pinter ref="print" :html-data="HtmlData"></pinter>
+    <printDialog :dialog-visible="dialogVisible" @cancel="handlePrintDialogCancel" @select="printSelectAfter" />
+    <pinter ref="print" :html-data="HtmlData" :printDeviceName="printDeviceName"></pinter>
     <el-table :data="tableData" style="width: 100%">
       <el-table-column prop="date" label="日期" width="180" column-key="date">
       </el-table-column>
@@ -19,7 +19,7 @@
   </div>
 </template>
 <script>
-import { ipcRenderer } from 'electron'
+// import { ipcRenderer } from 'electron'
 import printDialog from './components/PrintDialog.vue'
 import Pinter from './components/pinter.vue'
 export default {
@@ -32,6 +32,7 @@ export default {
     return {
       dialogVisible: false,
       HtmlData: '',
+      printDeviceName: '',
       printList: [],
       tableData: [{
         date: '2016-05-02',
@@ -64,6 +65,13 @@ export default {
     },
     handlePrintDialogCancel() {
       this.dialogVisible = false
+    },
+    printSelectAfter(val) {
+      this.dialogVisible = false
+      console.log(val)
+      this.$electronStore.set('printForm', val.name)
+      console.log(this.$electronStore.get('printForm'))
+      this.printDeviceName = val.name
     },
     doPrint(row) {
       this.HtmlData = row.name

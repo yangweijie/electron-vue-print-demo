@@ -1,10 +1,9 @@
 import Vue from 'vue'
-import ElementUI from 'element-ui'
 import inject from './plugins/inject'
 import App from './App.vue'
+import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 Vue.use(inject)
-
 Vue.config.productionTip = false
 Vue.use(ElementUI, {
   size: 'small',
